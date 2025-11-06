@@ -1,0 +1,363 @@
+AgriHelp Chat
+  
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: #f2f7f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 10px;
+    }
+    .chat-container {
+      background: #fff;
+      width: 400px;
+      max-width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+      max-height: 90vh;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #4caf50;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    .status {
+      background: #e8f5e9;
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #2e7d32;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .message {
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+    .user-message {
+      background: #e8f5e9;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .bot-message {
+      background: #f1f1f1;
+      align-self: flex-start;
+    }
+    .timestamp {
+      font-size: 10px;
+      color: #666;
+      margin-top: 4px;
+    }
+    .typing {
+      background: #f1f1f1;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      align-self: flex-start;
+      font-style: italic;
+      color: #666;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 14px;
+      outline: none;
+      font-size: 14px;
+    }
+    .chat-input button {
+      background: #4caf50;
+      border: none;
+      color: white;
+      padding: 14px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .chat-input button:hover {
+      background: #43a047;
+    }
+    .chat-input button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+  
+
+
+  
+    🌾 AgriHelp Chat
+    Connected to server ✅
+    
+      
+        Hello! 👋 I'm AgriHelp Bot. How can I assist you today?
+        
+      
+    
+    
+      
+      Send
+    
+  
+
+  
+    const API_URL = 'http://localhost:3000/api';
+    let userId = null;
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const statusDiv = document.getElementById('status');
+
+    // Initialize user
+    async function initUser() {
+      try {
+        // In production, get phone number from user login
+        const phone = localStorage.getItem('user_phone') || generatePhoneNumber();
+        localStorage.setItem('user_phone', phone);
+
+        const response = await fetch(`${API_URL}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone_number: phone, name: 'Farmer' })
+        });
+
+        const user = await response.json();
+        userId = user.id;
+        statusDiv.textContent = 'Connected ✅';
+        loadChatHistory();
+      } catch (error) {
+        console.error('Error initializing user:', error);
+        statusDiv.textContent = 'Connection failed ❌';
+        statusDiv.style.background = '#ffebee';
+        statusDiv.style.color = '#c62828';
+      }
+    }
+
+    // Generate demo phone number
+    function generatePhoneNumber() {
+      return '256' + Math.floor(700000000 + Math.random() * 99999999);
+    }
+
+    // Load chat history
+    async function loadChatHistory() {
+      try {
+        const response = await fetch(`${API_URL}/messages/${userId}`);
+        const messages = await response.json();
+        
+        // Clear chat box except welcome message
+        chatBox.innerHTML = '';
+        
+        if (messages.length === 0) {
+          addMessage('Hello! 👋 I\'m AgriHelp Bot. How can I assist you today?', 'bot', new Date());
+        } else {
+          messages.forEach(msg => {
+            addMessage(msg.message_text, msg.sender, new Date(msg.created_at), false);
+          });
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+      }
+    }
+
+    // Send message
+    async function sendMessage() {
+      const message = userInput.value.trim();
+      if (message === '' || !userId) return;
+
+      // Disable input
+      sendBtn.disabled = true;
+      userInput.disabled = true;
+
+      // Add user message
+      addMessage(message, 'user', new Date());
+      userInput.value = '';
+
+      // Show typing indicator
+      const typing = document.createElement('div');
+      typing.className = 'typing';
+      typing.textContent = 'AgriHelp is typing...';
+      typing.id = 'typing-indicator';
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        // Send to server
+        const response = await fetch(`${API_URL}/messages`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: userId, message_text: message })
+        });
+
+        const botMsg = await response.json();
+
+        // Remove typing indicator
+        typing.remove();
+
+        // Add bot reply
+        addMessage(botMsg.message_text, 'bot', new Date(botMsg.created_at));
+      } catch (error) {
+        console.error('Error sending message:', error);
+        typing.remove();
+        addMessage('Sorry, I couldn\'t connect to the server. Please try again.', 'bot', new Date());
+      }
+
+      // Re-enable input
+      sendBtn.disabled = false;
+      userInput.disabled = false;
+      userInput.focus();
+    }
+
+    // Add message to chat
+    function addMessage(text, sender, timestamp, scroll = true) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message');
+      msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+      msgDiv.textContent = text;
+
+      const timeDiv = document.createElement('div');
+      timeDiv.classList.add('timestamp');
+      timeDiv.textContent = formatTime(timestamp);
+      msgDiv.appendChild(timeDiv);
+
+      chatBox.appendChild(msgDiv);
+      if (scroll) {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+
+    // Format timestamp
+    function formatTime(date) {
+      return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Enter key to send
+    userInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && !sendBtn.disabled) {
+        sendMessage();
+      }
+    });
+
+    // Initialize on load
+    document.getElementById('init-time').textContent = formatTime(new Date());
+    initUser();
+  
+
+
+```
+
+---
+
+## 4️⃣ SETUP INSTRUCTIONS
+
+### Step 1: Install MySQL/PostgreSQL
+```bash
+# Install MySQL
+sudo apt install mysql-server  # Ubuntu/Linux
+# or download from mysql.com for Windows/Mac
+
+# Start MySQL
+sudo service mysql start
+```
+
+### Step 2: Create Database
+```bash
+mysql -u root -p
+# Then run the schema.sql commands
+```
+
+### Step 3: Setup Server
+```bash
+cd server
+npm install
+node server.js
+```
+
+### Step 4: Open Client
+```bash
+# Open client/index.html in browser
+# Or use live server
+```
+
+---
+
+## 5️⃣ DEPLOY TO PRODUCTION
+
+### Option A: Deploy to Heroku (Free tier)
+```bash
+# Install Heroku CLI
+heroku login
+heroku create agrihelp-chat
+git push heroku main
+heroku addons:create jawsdb:kitefin  # MySQL database
+```
+
+### Option B: Deploy to Railway.app
+1. Connect GitHub repo
+2. Add MySQL database
+3. Deploy automatically
+
+### Option C: Deploy to Vercel + PlanetScale
+- Frontend: Vercel
+- Database: PlanetScale (MySQL)
+- Backend: Vercel Serverless Functions
+
+---
+
+## 🔧 Environment Variables (.env)
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=agrihelp_db
+PORT=3000
+```
+
+---
+
+## 📱 Features Included
+
+✅ User registration with phone number
+✅ Chat history saved in database
+✅ Real-time messaging
+✅ Mobile-responsive design
+✅ Typing indicators
+✅ Timestamps
+✅ Persistent chat history
+✅ Feedback system
+✅ Connection status
+
+---
+
+## 🚀 Next Steps
+
+1. **Add Authentication**: Phone OTP verification
+2. **Add Push Notifications**: Notify farmers of replies
+3. **Add Image Upload**: For crop disease diagnosis
+4. **Add Voice Messages**: For illiterate farmers
+5. **Add Multi-language**: Luganda, Swahili, etc.
+6. **Add AI Integration**: OpenAI or Claude API for smarter replies
+
+---
+
+Ready to deploy! 🌾
