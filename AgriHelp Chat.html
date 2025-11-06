@@ -1,0 +1,215 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgriHelp Chat</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    body {
+      background: #f2f7f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .chat-container {
+      background: #fff;
+      width: 380px;
+      max-width: 95%;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #4caf50;
+      color: white;
+      padding: 14px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .chat-box {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px 14px;
+      border-radius: 12px;
+      max-width: 80%;
+      line-height: 1.4;
+    }
+    .user-message {
+      background: #e8f5e9;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background: #f1f1f1;
+      align-self: flex-start;
+    }
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
+    .chat-input input {
+      flex: 1;
+      border: none;
+      padding: 12px;
+      outline: none;
+    }
+    .chat-input button {
+      background: #4caf50;
+      border: none;
+      color: white;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .chat-input button:hover {
+      background: #43a047;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">🌾 AgriHelp Chat</div>
+    <div class="chat-box" id="chat-box">
+      <div class="bot-message message">Hello! 👋 I'm AgriHelp Bot. How can I assist you today?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your question..." />
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    
+    // Allow Enter key to send message
+    userInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+    
+    function sendMessage() {
+      const message = userInput.value.trim();
+      if (message === '') return;
+      // Add user message
+      addMessage(message, 'user');
+      // Clear input
+      userInput.value = '';
+      // Simulate bot reply
+      setTimeout(() => {
+        const reply = getBotReply(message);
+        addMessage(reply, 'bot');
+      }, 800);
+    }
+    function addMessage(text, sender) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message');
+      msgDiv.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
+      msgDiv.textContent = text;
+      chatBox.appendChild(msgDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+    function getBotReply(message) {
+      message = message.toLowerCase();
+      
+      // Greetings
+      if (message.includes('hello') || message.includes('hi') || message.includes('hey')) {
+        return 'Hi there! 👋 How is your farm doing today? I can help with crop diseases, pests, fertilizers, and farming tips.';
+      }
+      
+      // Leaf problems
+      if (message.includes('yellow leaves') || message.includes('yellowing')) {
+        return 'Yellow leaves can indicate: 1) Nitrogen deficiency - add compost or urea fertilizer 🌱 2) Overwatering - check soil drainage 3) Iron deficiency - apply iron chelate. Which crop are you growing?';
+      }
+      if (message.includes('brown leaves') || message.includes('browning')) {
+        return 'Brown leaves often mean: 1) Underwatering or drought stress 💧 2) Potassium deficiency - apply potash 3) Fungal disease - use fungicide. Check soil moisture first!';
+      }
+      if (message.includes('spots on leaves') || message.includes('leaf spots')) {
+        return 'Leaf spots are usually fungal diseases 🍄. Remove affected leaves, improve air circulation, and spray with copper-based fungicide or neem oil every 7-10 days.';
+      }
+      
+      // Pests
+      if (message.includes('pest') || message.includes('insect') || message.includes('bug')) {
+        return 'Common pests include aphids, caterpillars, and beetles 🐛. Try: 1) Neem oil spray 2) Soap water solution 3) Introduce beneficial insects like ladybugs. What pest do you see?';
+      }
+      if (message.includes('aphid') || message.includes('greenfly')) {
+        return 'Aphids suck plant sap! 🐛 Spray with: 1) Neem oil solution 2) Dish soap + water (1 tsp per liter) 3) Plant marigolds nearby to repel them naturally.';
+      }
+      if (message.includes('caterpillar') || message.includes('worm')) {
+        return 'Caterpillars eating your crops? 🐛 Use: 1) Hand-pick them early morning 2) Bt (Bacillus thuringiensis) spray 3) Plant basil or mint as natural repellent.';
+      }
+      
+      // Fertilizers
+      if (message.includes('fertilizer') || message.includes('fertiliser')) {
+        return 'For healthy crops use NPK fertilizer: N (Nitrogen) for leaves 🌿, P (Phosphorus) for roots & flowers 🌸, K (Potassium) for fruits 🍅. Organic options: compost, manure, bone meal.';
+      }
+      if (message.includes('compost') || message.includes('organic')) {
+        return 'Compost is excellent! 🌱 Mix kitchen scraps, dry leaves, and manure. Keep moist, turn weekly, ready in 2-3 months. Improves soil health and provides slow-release nutrients.';
+      }
+      
+      // Watering
+      if (message.includes('water') || message.includes('irrigation')) {
+        return 'Watering tips: 💧 1) Water early morning or evening 2) Deep watering better than frequent light watering 3) Check soil 2 inches deep - if dry, water 4) Mulch to retain moisture.';
+      }
+      if (message.includes('overwater') || message.includes('too much water')) {
+        return 'Overwatering causes root rot! 🚫💧 Signs: yellow leaves, wilting despite wet soil. Fix: 1) Improve drainage 2) Reduce watering frequency 3) Add organic matter to soil.';
+      }
+      
+      // Soil
+      if (message.includes('soil') || message.includes('ph')) {
+        return 'Healthy soil = healthy crops! 🌍 Most crops prefer pH 6-7. Test your soil. Improve with: compost, manure, crop rotation. Add lime to raise pH, sulfur to lower pH.';
+      }
+      
+      // Crops
+      if (message.includes('tomato')) {
+        return 'Tomato tips: 🍅 1) Full sun (6-8 hours) 2) Water regularly, avoid wetting leaves 3) Stake or cage plants 4) Feed with balanced fertilizer 5) Watch for blight - use fungicide if needed.';
+      }
+      if (message.includes('maize') || message.includes('corn')) {
+        return 'Maize farming: 🌽 1) Plant after last frost 2) Space 12 inches apart 3) Apply nitrogen fertilizer at knee-high stage 4) Water deeply weekly 5) Watch for fall armyworm - use pesticide.';
+      }
+      if (message.includes('bean') || message.includes('beans')) {
+        return 'Bean growing: 🫘 1) Plant in warm soil 2) No heavy fertilizer needed (they fix nitrogen!) 3) Water at base 4) Harvest regularly for more production 5) Rotate crops yearly.';
+      }
+      if (message.includes('cabbage') || message.includes('vegetables')) {
+        return 'Vegetable tips: 🥬 1) Rich, well-drained soil 2) Regular watering 3) Mulch around plants 4) Watch for cabbage worms - use Bt spray 5) Harvest at right maturity.';
+      }
+      
+      // Diseases
+      if (message.includes('disease') || message.includes('fungus') || message.includes('blight')) {
+        return 'Common crop diseases: 1) Blight - use copper fungicide 🍄 2) Powdery mildew - neem oil 3) Root rot - improve drainage. Prevention: crop rotation, good spacing, clean tools.';
+      }
+      
+      // Weather
+      if (message.includes('weather') || message.includes('rain') || message.includes('drought')) {
+        return 'Weather planning: ☀️🌧️ 1) Mulch during dry season 2) Plant drought-resistant varieties 3) Use rain water harvesting 4) Provide shade during extreme heat 5) Check local weather forecasts.';
+      }
+      
+      // Planting season
+      if (message.includes('when to plant') || message.includes('planting season')) {
+        return 'Planting seasons in Uganda: 🌱 Season 1 (Mar-May), Season 2 (Sep-Nov). Plant beans, maize, vegetables at start of rains. Know your local rainfall patterns!';
+      }
+      
+      // Harvest
+      if (message.includes('harvest') || message.includes('when to harvest')) {
+        return 'Harvest timing: ⏰ 1) Maize: when kernels are firm 2) Beans: when pods are full but not dry 3) Tomatoes: when fully colored 4) Early morning is best time. Store properly!';
+      }
+      
+      // General farming
+      if (message.includes('tip') || message.includes('advice') || message.includes('help')) {
+        return 'Top farming tips: 🌾 1) Test your soil 2) Use quality seeds 3) Practice crop rotation 4) Control weeds early 5) Monitor for pests daily 6) Keep farm records. What crop are you growing?';
+      }
+      
+      // Default
+      return 'I can help with: 🌾 Crop diseases, pest control, fertilizers, watering, soil health, planting tips. Ask me about specific crops (tomato, maize, beans) or problems you're facing!';
+    }
+  </script>
+</body>
+</html>
