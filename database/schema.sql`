@@ -1,0 +1,45 @@
+CREATE DATABASE agrihelp_db;
+USE agrihelp_db;
+
+-- Users table (farmers)
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    phone_number VARCHAR(15) UNIQUE NOT NULL,
+    name VARCHAR(100),
+    location VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chat messages table
+CREATE TABLE messages (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    message_text TEXT NOT NULL,
+    sender VARCHAR(10) NOT NULL, -- 'user' or 'bot'
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Chat sessions table
+CREATE TABLE chat_sessions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    session_start TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_end TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Feedback table
+CREATE TABLE feedback (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    message_id INT,
+    rating INT CHECK (rating BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (message_id) REFERENCES messages(id)
+);
+```
+
+---
